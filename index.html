@@ -138,7 +138,7 @@
 <body>
 <div class="app">
   <h1>TransformerGuessr</h1>
-  <p class="tagline">Guess the company and release year from the architecture diagram.</p>
+  <p class="tagline">Guess the model and release year from the architecture diagram.</p>
 
   <!-- START SCREEN -->
   <div class="screen active card" id="startScreen">
@@ -173,19 +173,12 @@
     <div class="progress-bar"><div id="progressFill" style="width:0%"></div></div>
     <div class="image-frame"><img id="cardImg" alt="architecture diagram"></div>
     <div class="field" style="margin-bottom:14px;">
-      <label>Company</label>
-      <div class="choice-grid" id="gCompanyChoices"></div>
+      <label>Model</label>
+      <div class="choice-grid" id="gModelChoices"></div>
     </div>
-    <div class="guess-grid">
-      <div class="field">
-        <label for="gYear">Year released</label>
-        <input id="gYear" type="number" min="2018" max="2027" placeholder="2024">
-      </div>
-      <div class="field">
-        <label for="gName">Model name <span class="optional">optional, not scored</span></label>
-        <input id="gName" list="modelNames" placeholder="e.g. Llama 3" autocomplete="off">
-        <datalist id="modelNames"></datalist>
-      </div>
+    <div class="field">
+      <label for="gYear">Year released</label>
+      <input id="gYear" type="number" min="2018" max="2027" placeholder="2024">
     </div>
     <div class="submit-row">
       <button class="primary" id="submitGuess">Submit</button>
@@ -269,13 +262,9 @@ function slugify(s) {
 MODELS.forEach(m => { m.slug = slugify(m.name); });
 
 const COMPANIES = Array.from(new Set(MODELS.map(m => m.company))).sort();
-const NAMES = Array.from(new Set(MODELS.map(m => m.name))).sort();
 
 document.getElementById('datasetInfo').textContent =
   `${MODELS.length} models · ${COMPANIES.length} companies · architecture diagrams © Sebastian Raschka`;
-
-const nameList = document.getElementById('modelNames');
-nameList.innerHTML = NAMES.map(n => `<option value="${escapeAttr(n)}">`).join('');
 
 function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function escapeAttr(s) { return escapeHtml(s); }
@@ -314,43 +303,43 @@ function renderRound() {
   document.getElementById('progressFill').style.width = ((state.idx) / state.rounds.length * 100) + '%';
   document.getElementById('cardImg').src = `./cards/${r.slug}.png`;
 
-  renderCompanyChoices(r);
+  renderModelChoices(r);
   document.getElementById('gYear').value = '';
-  document.getElementById('gName').value = '';
   document.getElementById('resultBox').hidden = true;
   document.getElementById('submitGuess').textContent = 'Submit';
   document.getElementById('submitGuess').dataset.mode = 'submit';
 }
 
-function renderCompanyChoices(r) {
-  const distractors = COMPANIES.filter(c => c !== r.company);
+function renderModelChoices(r) {
+  const sameTier = MODELS.filter(m => m.tier === r.tier && m.name !== r.name);
+  const pool = sameTier.length >= 3 ? sameTier : MODELS.filter(m => m.name !== r.name);
+  const distractors = pool.slice();
   shuffle(distractors);
-  const choices = [r.company, ...distractors.slice(0, 3)];
+  const choices = [r.name, ...distractors.slice(0, 3).map(m => m.name)];
   shuffle(choices);
-  state.currentChoices = choices;
-  state.selectedCompany = null;
+  state.selectedModel = null;
 
-  const grid = document.getElementById('gCompanyChoices');
-  grid.innerHTML = choices.map(c =>
-    `<button type="button" class="choice-btn" data-company="${escapeAttr(c)}">${escapeHtml(c)}</button>`
+  const grid = document.getElementById('gModelChoices');
+  grid.innerHTML = choices.map(n =>
+    `<button type="button" class="choice-btn" data-model="${escapeAttr(n)}">${escapeHtml(n)}</button>`
   ).join('');
   grid.querySelectorAll('.choice-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       if (btn.classList.contains('locked')) return;
       grid.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('selected'));
       btn.classList.add('selected');
-      state.selectedCompany = btn.dataset.company;
+      state.selectedModel = btn.dataset.model;
     });
   });
 }
 
-const MAX_COMPANY_PTS = 50;
+const MAX_MODEL_PTS = 50;
 const MAX_YEAR_PTS = 50;
 const YEAR_POINTS_PER_DISTANCE = 12;
 
 function scoreGuess(r, guess) {
-  const companyOk = guess.company && normalize(guess.company) === normalize(r.company);
-  const companyPts = companyOk ? MAX_COMPANY_PTS : 0;
+  const modelOk = guess.model && normalize(guess.model) === normalize(r.name);
+  const modelPts = modelOk ? MAX_MODEL_PTS : 0;
 
   let yearPts = 0;
   let yearDist = null;
@@ -360,7 +349,7 @@ function scoreGuess(r, guess) {
     yearPts = Math.max(0, MAX_YEAR_PTS - yearDist * YEAR_POINTS_PER_DISTANCE);
   }
 
-  return { companyOk, companyPts, yearPts, yearDist, total: companyPts + yearPts };
+  return { modelOk, modelPts, yearPts, yearDist, total: modelPts + yearPts };
 }
 
 function submitGuess() {
@@ -369,36 +358,31 @@ function submitGuess() {
 
   const r = state.rounds[state.idx];
   const guess = {
-    company: state.selectedCompany || '',
+    model: state.selectedModel || '',
     year: document.getElementById('gYear').value,
-    name: document.getElementById('gName').value,
   };
   const res = scoreGuess(r, guess);
   state.totalScore += res.total;
   state.results.push({ model: r, guess, ...res });
 
-  const grid = document.getElementById('gCompanyChoices');
+  const grid = document.getElementById('gModelChoices');
   grid.querySelectorAll('.choice-btn').forEach(b => {
     b.classList.add('locked');
     b.classList.remove('selected');
-    if (b.dataset.company === r.company) b.classList.add('correct');
-    else if (b.dataset.company === guess.company) b.classList.add('wrong');
+    if (b.dataset.model === r.name) b.classList.add('correct');
+    else if (b.dataset.model === guess.model) b.classList.add('wrong');
   });
 
   const yearDistLabel = res.yearDist === null ? '—'
     : res.yearDist === 0 ? 'exact'
     : `off by ${res.yearDist}`;
-  const nameNote = guess.name
-    ? (normalize(guess.name) === normalize(r.name) ? ' ✓' : '')
-    : '';
 
   const box = document.getElementById('resultBox');
   box.hidden = false;
   box.innerHTML = `
     <div class="line"><span class="label">Correct answer</span><span class="value">${escapeHtml(r.name)} · ${escapeHtml(r.company)} · ${r.year}</span></div>
-    <div class="line"><span class="label">Company (yours: ${escapeHtml(guess.company || '—')})</span><span class="pts${res.companyPts === 0 ? ' zero' : ''}">+${res.companyPts}</span></div>
+    <div class="line"><span class="label">Model</span><span class="pts${res.modelPts === 0 ? ' zero' : ''}">+${res.modelPts}</span></div>
     <div class="line"><span class="label">Year (yours: ${escapeHtml(guess.year || '—')} · ${yearDistLabel})</span><span class="pts${res.yearPts === 0 ? ' zero' : ''}">+${res.yearPts}</span></div>
-    ${guess.name ? `<div class="line"><span class="label">Your name guess${nameNote}</span><span class="value">${escapeHtml(guess.name)}</span></div>` : ''}
     <div class="line total-row"><span class="label">Round total</span><span class="pts">+${res.total}</span></div>
   `;
   document.getElementById('runningScore').textContent = state.totalScore;
@@ -447,8 +431,8 @@ document.getElementById('submitGuess').addEventListener('click', submitGuess);
 document.getElementById('playAgain').addEventListener('click', () => startGame(state.diff));
 document.getElementById('backHome').addEventListener('click', () => show('startScreen'));
 
-document.querySelectorAll('#gYear, #gName').forEach(el => {
-  el.addEventListener('keydown', (e) => { if (e.key === 'Enter') submitGuess(); });
+document.getElementById('gYear').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') submitGuess();
 });
 </script>
 </body>
