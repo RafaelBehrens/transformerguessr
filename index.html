@@ -33,8 +33,21 @@
   .diff-btn.medium .title { color: #fbbf24; }
   .diff-btn.hard .title { color: #f87171; }
   .diff-btn.all .title { color: #c4b5fd; }
-  .progress-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; color: #94a3b8; font-size: 13px; }
-  .progress-row .score { color: #c4b5fd; font-weight: 600; }
+  .progress-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; color: #94a3b8; font-size: 13px; gap: 12px; }
+  .score-pill {
+    display: inline-flex; align-items: baseline; gap: 6px;
+    padding: 8px 14px; border-radius: 100px;
+    background: linear-gradient(135deg, rgba(123,211,255,0.15), rgba(196,155,255,0.15));
+    border: 1px solid rgba(196,155,255,0.35);
+    font-size: 13px; color: #cbd5e1; font-weight: 500;
+    box-shadow: 0 0 20px rgba(196,155,255,0.12);
+  }
+  .score-pill .score-value {
+    font-size: 20px; font-weight: 800; line-height: 1;
+    background: linear-gradient(90deg, #7bd3ff, #c49bff);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    font-variant-numeric: tabular-nums;
+  }
   .progress-bar { height: 3px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; margin-bottom: 20px; }
   .progress-bar > div { height: 100%; background: linear-gradient(90deg, #7bd3ff, #c49bff); transition: width 0.3s; }
   .image-frame {
@@ -120,6 +133,8 @@
     .diff-btn { padding: 14px 12px; }
     .diff-btn .title { font-size: 15px; }
     .progress-row { font-size: 12px; }
+    .score-pill { padding: 6px 12px; font-size: 11px; }
+    .score-pill .score-value { font-size: 17px; }
     .guess-grid { grid-template-columns: 1fr; gap: 10px; }
     .choice-grid { grid-template-columns: 1fr 1fr; }
     .choice-btn { padding: 11px 12px; font-size: 13px; }
@@ -168,7 +183,7 @@
   <div class="screen card" id="gameScreen">
     <div class="progress-row">
       <span>Question <span id="qNum">1</span> / <span id="qTotal">10</span> <span class="chip" id="diffChip">easy</span></span>
-      <span class="score">Score: <span id="runningScore">0</span></span>
+      <span class="score-pill">Score <span class="score-value" id="runningScore">0</span></span>
     </div>
     <div class="progress-bar"><div id="progressFill" style="width:0%"></div></div>
     <div class="image-frame"><img id="cardImg" alt="architecture diagram"></div>
