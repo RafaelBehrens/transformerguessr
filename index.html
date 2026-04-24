@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TransformerGuessr</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; min-height: 100%; font-family: 'SF Pro Text', system-ui, -apple-system, sans-serif; color: #eee; background: radial-gradient(1200px 800px at 50% -200px, #1a2440 0%, #0a0d1a 60%); }
+  body { padding: 24px 16px 48px; display: flex; flex-direction: column; align-items: center; }
+  .app { width: 100%; max-width: 960px; }
+  h1 { font-size: 38px; font-weight: 800; letter-spacing: -0.5px; margin: 16px 0 4px; text-align: center; background: linear-gradient(90deg, #7bd3ff, #c49bff, #ff9bd4); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .tagline { text-align: center; color: #8b9bb5; margin: 0 0 32px; font-size: 15px; }
+  .card {
+    background: rgba(18, 24, 44, 0.85); border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px; padding: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    backdrop-filter: blur(8px);
+  }
+  .screen { display: none; }
+  .screen.active { display: block; }
+  h2 { margin: 0 0 12px; font-size: 18px; font-weight: 600; color: #cbd5e1; }
+  .difficulty-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 16px 0; }
+  .diff-btn {
+    border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.04);
+    color: #eee; padding: 18px 16px; border-radius: 10px; cursor: pointer;
+    text-align: left; transition: transform 0.15s, border-color 0.15s, background 0.15s;
+    font: inherit;
+  }
+  .diff-btn:hover { transform: translateY(-2px); border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.08); }
+  .diff-btn .title { font-weight: 700; font-size: 16px; display: block; margin-bottom: 4px; }
+  .diff-btn .desc { font-size: 12px; color: #94a3b8; }
+  .diff-btn.easy .title { color: #6ee7b7; }
+  .diff-btn.medium .title { color: #fbbf24; }
+  .diff-btn.hard .title { color: #f87171; }
+  .diff-btn.all .title { color: #c4b5fd; }
+  .progress-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; color: #94a3b8; font-size: 13px; }
+  .progress-row .score { color: #c4b5fd; font-weight: 600; }
+  .progress-bar { height: 3px; background: rgba(255,255,255,0.1); border-radius: 2px; overflow: hidden; margin-bottom: 20px; }
+  .progress-bar > div { height: 100%; background: linear-gradient(90deg, #7bd3ff, #c49bff); transition: width 0.3s; }
+  .image-frame {
+    background: #fff; border-radius: 8px; margin-bottom: 20px;
+    border: 1px solid rgba(255,255,255,0.1);
+    display: flex; align-items: center; justify-content: center;
+    padding: 12px;
+    min-height: 200px;
+  }
+  .image-frame img {
+    display: block;
+    max-width: 100%;
+    max-height: 420px;
+    width: auto;
+    height: auto;
+  }
+  .guess-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  @media (max-width: 560px) { .guess-grid { grid-template-columns: 1fr; } }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  .field label { font-size: 11px; text-transform: uppercase; color: #94a3b8; letter-spacing: 0.5px; }
+  .field input, .field select {
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+    color: #eee; padding: 10px 12px; border-radius: 8px; font: inherit;
+  }
+  .field input:focus, .field select:focus { outline: none; border-color: #7bd3ff; background: rgba(255,255,255,0.1); }
+  .field .optional { font-size: 10px; color: #64748b; font-weight: 400; text-transform: none; letter-spacing: 0; margin-left: 6px; }
+  .choice-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .choice-btn {
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12);
+    color: #eee; padding: 12px 14px; border-radius: 8px; font: inherit; font-size: 14px;
+    cursor: pointer; text-align: left; transition: border-color 0.1s, background 0.1s;
+  }
+  .choice-btn:hover { border-color: rgba(255,255,255,0.3); background: rgba(255,255,255,0.1); }
+  .choice-btn.selected { border-color: #7bd3ff; background: rgba(123,211,255,0.15); color: #fff; }
+  .choice-btn.locked { cursor: default; }
+  .choice-btn.locked:hover { border-color: rgba(255,255,255,0.12); background: rgba(255,255,255,0.06); }
+  .choice-btn.correct { border-color: #6ee7b7; background: rgba(110,231,183,0.15); color: #6ee7b7; }
+  .choice-btn.wrong { border-color: #f87171; background: rgba(248,113,113,0.12); color: #f87171; }
+  .submit-row { display: flex; gap: 12px; margin-top: 18px; }
+  button.primary {
+    flex: 1; background: linear-gradient(135deg, #7bd3ff, #c49bff); color: #0a0d1a;
+    border: none; padding: 14px; border-radius: 8px; cursor: pointer;
+    font: inherit; font-weight: 700; font-size: 15px; transition: transform 0.1s;
+  }
+  button.primary:hover { transform: translateY(-1px); }
+  button.secondary {
+    background: rgba(255,255,255,0.06); color: #eee;
+    border: 1px solid rgba(255,255,255,0.14); padding: 14px 22px; border-radius: 8px;
+    cursor: pointer; font: inherit; font-weight: 600; font-size: 14px;
+  }
+  .result {
+    margin-top: 18px; padding: 16px; border-radius: 10px;
+    background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+  }
+  .result .line { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; }
+  .result .line + .line { border-top: 1px solid rgba(255,255,255,0.06); }
+  .result .label { color: #94a3b8; }
+  .result .value { font-weight: 600; }
+  .result .pts { color: #6ee7b7; font-weight: 700; }
+  .result .pts.zero { color: #f87171; }
+  .result .total-row { margin-top: 10px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,0.15); font-size: 16px; }
+  .final-score { font-size: 64px; font-weight: 800; text-align: center; margin: 8px 0; background: linear-gradient(90deg, #7bd3ff, #c49bff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .grade { text-align: center; font-size: 22px; margin-bottom: 16px; font-weight: 700; }
+  .grade.S { color: #fbbf24; }
+  .grade.A { color: #6ee7b7; }
+  .grade.B { color: #7bd3ff; }
+  .grade.C { color: #c4b5fd; }
+  .grade.D { color: #f87171; }
+  .breakdown { max-height: 240px; overflow-y: auto; margin: 12px 0; padding: 4px 8px; background: rgba(0,0,0,0.2); border-radius: 8px; }
+  .breakdown .row { display: flex; justify-content: space-between; padding: 6px 4px; font-size: 13px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .breakdown .row:last-child { border: none; }
+  .footer { text-align: center; font-size: 12px; color: #64748b; margin-top: 28px; }
+  .footer a { color: #94a3b8; text-decoration: none; border-bottom: 1px dotted #475569; }
+  .footer a:hover { color: #cbd5e1; }
+  .chip { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 100px; background: rgba(255,255,255,0.08); color: #cbd5e1; margin-left: 6px; vertical-align: middle; }
+  @media (max-width: 640px) {
+    body { padding: 12px 10px 32px; }
+    h1 { font-size: 28px; margin: 8px 0 2px; }
+    .tagline { font-size: 13px; margin-bottom: 20px; }
+    .card { padding: 16px; border-radius: 10px; }
+    .image-frame { padding: 8px; min-height: 140px; }
+    .image-frame img { max-height: 300px; }
+    .diff-btn { padding: 14px 12px; }
+    .diff-btn .title { font-size: 15px; }
+    .progress-row { font-size: 12px; }
+    .guess-grid { grid-template-columns: 1fr; gap: 10px; }
+    .choice-grid { grid-template-columns: 1fr 1fr; }
+    .choice-btn { padding: 11px 12px; font-size: 13px; }
+    .field input, .field select { padding: 12px; font-size: 16px; }
+    button.primary { padding: 14px; font-size: 15px; }
+    .final-score { font-size: 48px; }
+    .grade { font-size: 18px; }
+    .result .line { font-size: 13px; flex-wrap: wrap; gap: 4px; }
+    .result .line .label { flex: 1 1 auto; min-width: 0; }
+  }
+  @media (max-width: 340px) {
+    .choice-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>TransformerGuessr</h1>
+  <p class="tagline">Guess the company and release year from the architecture diagram.</p>
+
+  <!-- START SCREEN -->
+  <div class="screen active card" id="startScreen">
+    <h2>Pick a difficulty</h2>
+    <div class="difficulty-grid">
+      <button class="diff-btn easy" data-diff="easy">
+        <span class="title">Easy</span>
+        <span class="desc">Major labs — OpenAI, Meta, Google, Anthropic, Mistral, DeepSeek, xAI</span>
+      </button>
+      <button class="diff-btn medium" data-diff="medium">
+        <span class="title">Medium</span>
+        <span class="desc">Prominent open-source — Qwen, Kimi, OLMo, GLM, MiniMax, Nemotron</span>
+      </button>
+      <button class="diff-btn hard" data-diff="hard">
+        <span class="title">Hard</span>
+        <span class="desc">Lesser-known providers — Arcee, Sarvam, StepFun, Nanbeige, Aya…</span>
+      </button>
+      <button class="diff-btn all" data-diff="all">
+        <span class="title">All</span>
+        <span class="desc">Mix of every model in the dataset.</span>
+      </button>
+    </div>
+    <div class="footer">Architecture diagrams © Sebastian Raschka. Labels based on community data — edit the MODELS array in this file to correct years/companies.</div>
+  </div>
+
+  <!-- GAME SCREEN -->
+  <div class="screen card" id="gameScreen">
+    <div class="progress-row">
+      <span>Question <span id="qNum">1</span> / <span id="qTotal">10</span> <span class="chip" id="diffChip">easy</span></span>
+      <span class="score">Score: <span id="runningScore">0</span></span>
+    </div>
+    <div class="progress-bar"><div id="progressFill" style="width:0%"></div></div>
+    <div class="image-frame"><img id="cardImg" alt="architecture diagram"></div>
+    <div class="field" style="margin-bottom:14px;">
+      <label>Company</label>
+      <div class="choice-grid" id="gCompanyChoices"></div>
+    </div>
+    <div class="guess-grid">
+      <div class="field">
+        <label for="gYear">Year released</label>
+        <input id="gYear" type="number" min="2018" max="2027" placeholder="2024">
+      </div>
+      <div class="field">
+        <label for="gName">Model name <span class="optional">optional, not scored</span></label>
+        <input id="gName" list="modelNames" placeholder="e.g. Llama 3" autocomplete="off">
+        <datalist id="modelNames"></datalist>
+      </div>
+    </div>
+    <div class="submit-row">
+      <button class="primary" id="submitGuess">Submit</button>
+    </div>
+    <div class="result" id="resultBox" hidden></div>
+  </div>
+
+  <!-- END SCREEN -->
+  <div class="screen card" id="endScreen">
+    <h2 style="text-align:center;">Final score</h2>
+    <div class="final-score" id="finalScore">0</div>
+    <div class="grade" id="gradeLabel">—</div>
+    <div class="breakdown" id="breakdown"></div>
+    <div class="submit-row">
+      <button class="primary" id="playAgain">Play again</button>
+      <button class="secondary" id="backHome">Home</button>
+    </div>
+  </div>
+
+  <div class="footer">
+    <span id="datasetInfo"></span>
+  </div>
+</div>
+
+<script>
+/* =====================================================================
+   MODELS — edit freely if any year/company/tier is wrong.
+   Name must exactly match the labeler name so the slug picks the
+   right PNG in cards/.
+   ===================================================================== */
+const MODELS = [
+  { name: "GPT-2XL 1.5B",                   company: "OpenAI",       year: 2019, tier: "easy" },
+  { name: "Llama 3 8B",                     company: "Meta",         year: 2024, tier: "easy" },
+  { name: "OLMo 2 7B",                      company: "AI2",          year: 2024, tier: "medium" },
+  { name: "Llama 3.2 1B",                   company: "Meta",         year: 2024, tier: "easy" },
+  { name: "Qwen3 4B",                       company: "Alibaba",      year: 2025, tier: "medium" },
+  { name: "Qwen3 32B",                      company: "Alibaba",      year: 2025, tier: "medium" },
+  { name: "DeepSeek V3/R1 (671 billion)",   company: "DeepSeek",     year: 2024, tier: "easy" },
+  { name: "Kimi K2 (1 trillion)",           company: "Moonshot AI",  year: 2025, tier: "medium" },
+  { name: "Gemma 3 4B",                     company: "Google",       year: 2025, tier: "easy" },
+  { name: "Gemma 3 27B",                    company: "Google",       year: 2025, tier: "easy" },
+  { name: "Mistral 3.1 Small 24B",          company: "Mistral AI",   year: 2025, tier: "easy" },
+  { name: "Llama 4 Maverick (400B)",        company: "Meta",         year: 2025, tier: "easy" },
+  { name: "Qwen3 235B-A22B",                company: "Alibaba",      year: 2025, tier: "medium" },
+  { name: "SmolLM3 3B",                     company: "Hugging Face", year: 2025, tier: "hard" },
+  { name: "Qwen3 Coder Flash",              company: "Alibaba",      year: 2025, tier: "medium" },
+  { name: "Gemma 3 270M",                   company: "Google",       year: 2025, tier: "easy" },
+  { name: "GPT-OSS 20B",                    company: "OpenAI",       year: 2025, tier: "easy" },
+  { name: "GPT-OSS 120B",                   company: "OpenAI",       year: 2025, tier: "easy" },
+  { name: "Grok 2.5 (270B)",                company: "xAI",          year: 2025, tier: "easy" },
+  { name: "GLM-4.5 (355B)",                 company: "Zhipu AI",     year: 2025, tier: "medium" },
+  { name: "MiniMax-M2 (230B)",              company: "MiniMax",      year: 2025, tier: "medium" },
+  { name: "Qwen2 Next 80B-A3B",             company: "Alibaba",      year: 2025, tier: "medium" },
+  { name: "Kimi Linear 48B-A3B",            company: "Moonshot AI",  year: 2025, tier: "medium" },
+  { name: "Olmo 3 7B",                      company: "AI2",          year: 2025, tier: "medium" },
+  { name: "Olmo 3 32B",                     company: "AI2",          year: 2025, tier: "medium" },
+  { name: "Mistral 3 Large (673 billion)",  company: "Mistral AI",   year: 2025, tier: "easy" },
+  { name: "Nemotron 3 Super (120B-A12B)",   company: "NVIDIA",       year: 2025, tier: "medium" },
+  { name: "Xiaomi MiMo-V2-Flash (309B)",    company: "Xiaomi",       year: 2026, tier: "hard" },
+  { name: "DeepSeek V3.2 (671B)",           company: "DeepSeek",     year: 2025, tier: "easy" },
+  { name: "Arcee AI Trinity Large (400B)",  company: "Arcee AI",     year: 2026, tier: "hard" },
+  { name: "GLM-5 (744B)",                   company: "Zhipu AI",     year: 2026, tier: "medium" },
+  { name: "GLM-4.7 (355B)",                 company: "Zhipu AI",     year: 2025, tier: "medium" },
+  { name: "Tiny Aya 3.35B",                 company: "Cohere",       year: 2025, tier: "hard" },
+  { name: "Step 3.5 Flash (196B)",          company: "StepFun",      year: 2025, tier: "hard" },
+  { name: "MiniMax-M2.5 (230B)",            company: "MiniMax",      year: 2026, tier: "medium" },
+  { name: "Nanbeige 4.1 3B",                company: "Nanbeige",     year: 2025, tier: "hard" },
+  { name: "Qwen3.5 (397B)",                 company: "Alibaba",      year: 2026, tier: "medium" },
+  { name: "Ling 2.5 (1T)",                  company: "InclusionAI",  year: 2026, tier: "hard" },
+  { name: "Sarvam 30B",                     company: "Sarvam AI",    year: 2026, tier: "hard" },
+  { name: "Sarvam 105B",                    company: "Sarvam AI",    year: 2026, tier: "hard" },
+];
+
+const ROUNDS_PER_GAME = 10;
+
+/* =================================================================== */
+
+function slugify(s) {
+  return s.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+}
+MODELS.forEach(m => { m.slug = slugify(m.name); });
+
+const COMPANIES = Array.from(new Set(MODELS.map(m => m.company))).sort();
+const NAMES = Array.from(new Set(MODELS.map(m => m.name))).sort();
+
+document.getElementById('datasetInfo').textContent =
+  `${MODELS.length} models · ${COMPANIES.length} companies · architecture diagrams © Sebastian Raschka`;
+
+const nameList = document.getElementById('modelNames');
+nameList.innerHTML = NAMES.map(n => `<option value="${escapeAttr(n)}">`).join('');
+
+function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function escapeAttr(s) { return escapeHtml(s); }
+function normalize(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9]/g, ''); }
+
+let state = null;
+
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function startGame(diff) {
+  const pool = diff === 'all' ? MODELS.slice() : MODELS.filter(m => m.tier === diff);
+  if (pool.length === 0) { alert('No models in this tier yet.'); return; }
+  shuffle(pool);
+  const rounds = pool.slice(0, Math.min(ROUNDS_PER_GAME, pool.length));
+  state = { diff, rounds, idx: 0, results: [], totalScore: 0 };
+  document.getElementById('qTotal').textContent = rounds.length;
+  document.getElementById('diffChip').textContent = diff;
+  show('gameScreen');
+  renderRound();
+}
+
+function shuffle(a) {
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+}
+
+function renderRound() {
+  const r = state.rounds[state.idx];
+  document.getElementById('qNum').textContent = state.idx + 1;
+  document.getElementById('runningScore').textContent = state.totalScore;
+  document.getElementById('progressFill').style.width = ((state.idx) / state.rounds.length * 100) + '%';
+  document.getElementById('cardImg').src = `./cards/${r.slug}.png`;
+
+  renderCompanyChoices(r);
+  document.getElementById('gYear').value = '';
+  document.getElementById('gName').value = '';
+  document.getElementById('resultBox').hidden = true;
+  document.getElementById('submitGuess').textContent = 'Submit';
+  document.getElementById('submitGuess').dataset.mode = 'submit';
+}
+
+function renderCompanyChoices(r) {
+  const distractors = COMPANIES.filter(c => c !== r.company);
+  shuffle(distractors);
+  const choices = [r.company, ...distractors.slice(0, 3)];
+  shuffle(choices);
+  state.currentChoices = choices;
+  state.selectedCompany = null;
+
+  const grid = document.getElementById('gCompanyChoices');
+  grid.innerHTML = choices.map(c =>
+    `<button type="button" class="choice-btn" data-company="${escapeAttr(c)}">${escapeHtml(c)}</button>`
+  ).join('');
+  grid.querySelectorAll('.choice-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (btn.classList.contains('locked')) return;
+      grid.querySelectorAll('.choice-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      state.selectedCompany = btn.dataset.company;
+    });
+  });
+}
+
+const MAX_COMPANY_PTS = 50;
+const MAX_YEAR_PTS = 50;
+const YEAR_POINTS_PER_DISTANCE = 12;
+
+function scoreGuess(r, guess) {
+  const companyOk = guess.company && normalize(guess.company) === normalize(r.company);
+  const companyPts = companyOk ? MAX_COMPANY_PTS : 0;
+
+  let yearPts = 0;
+  let yearDist = null;
+  const yg = parseInt(guess.year, 10);
+  if (!isNaN(yg)) {
+    yearDist = Math.abs(yg - r.year);
+    yearPts = Math.max(0, MAX_YEAR_PTS - yearDist * YEAR_POINTS_PER_DISTANCE);
+  }
+
+  return { companyOk, companyPts, yearPts, yearDist, total: companyPts + yearPts };
+}
+
+function submitGuess() {
+  const btn = document.getElementById('submitGuess');
+  if (btn.dataset.mode === 'next') return nextRound();
+
+  const r = state.rounds[state.idx];
+  const guess = {
+    company: state.selectedCompany || '',
+    year: document.getElementById('gYear').value,
+    name: document.getElementById('gName').value,
+  };
+  const res = scoreGuess(r, guess);
+  state.totalScore += res.total;
+  state.results.push({ model: r, guess, ...res });
+
+  const grid = document.getElementById('gCompanyChoices');
+  grid.querySelectorAll('.choice-btn').forEach(b => {
+    b.classList.add('locked');
+    b.classList.remove('selected');
+    if (b.dataset.company === r.company) b.classList.add('correct');
+    else if (b.dataset.company === guess.company) b.classList.add('wrong');
+  });
+
+  const yearDistLabel = res.yearDist === null ? '—'
+    : res.yearDist === 0 ? 'exact'
+    : `off by ${res.yearDist}`;
+  const nameNote = guess.name
+    ? (normalize(guess.name) === normalize(r.name) ? ' ✓' : '')
+    : '';
+
+  const box = document.getElementById('resultBox');
+  box.hidden = false;
+  box.innerHTML = `
+    <div class="line"><span class="label">Correct answer</span><span class="value">${escapeHtml(r.name)} · ${escapeHtml(r.company)} · ${r.year}</span></div>
+    <div class="line"><span class="label">Company (yours: ${escapeHtml(guess.company || '—')})</span><span class="pts${res.companyPts === 0 ? ' zero' : ''}">+${res.companyPts}</span></div>
+    <div class="line"><span class="label">Year (yours: ${escapeHtml(guess.year || '—')} · ${yearDistLabel})</span><span class="pts${res.yearPts === 0 ? ' zero' : ''}">+${res.yearPts}</span></div>
+    ${guess.name ? `<div class="line"><span class="label">Your name guess${nameNote}</span><span class="value">${escapeHtml(guess.name)}</span></div>` : ''}
+    <div class="line total-row"><span class="label">Round total</span><span class="pts">+${res.total}</span></div>
+  `;
+  document.getElementById('runningScore').textContent = state.totalScore;
+  btn.textContent = state.idx + 1 >= state.rounds.length ? 'See results' : 'Next →';
+  btn.dataset.mode = 'next';
+}
+
+function nextRound() {
+  state.idx++;
+  if (state.idx >= state.rounds.length) return showEnd();
+  renderRound();
+}
+
+function gradeFor(score, maxScore) {
+  const pct = score / maxScore;
+  if (pct >= 0.9) return 'S';
+  if (pct >= 0.75) return 'A';
+  if (pct >= 0.6) return 'B';
+  if (pct >= 0.4) return 'C';
+  return 'D';
+}
+
+function showEnd() {
+  const max = state.rounds.length * 100;
+  document.getElementById('finalScore').textContent = state.totalScore + ' / ' + max;
+  const grade = gradeFor(state.totalScore, max);
+  const gEl = document.getElementById('gradeLabel');
+  gEl.textContent = 'Grade: ' + grade;
+  gEl.className = 'grade ' + grade;
+
+  document.getElementById('breakdown').innerHTML = state.results.map((r, i) => `
+    <div class="row">
+      <span>${i + 1}. ${escapeHtml(r.model.name)}</span>
+      <span class="pts${r.total < 30 ? ' zero' : ''}">+${r.total}</span>
+    </div>
+  `).join('');
+
+  document.getElementById('progressFill').style.width = '100%';
+  show('endScreen');
+}
+
+document.querySelectorAll('.diff-btn').forEach(btn => {
+  btn.addEventListener('click', () => startGame(btn.dataset.diff));
+});
+document.getElementById('submitGuess').addEventListener('click', submitGuess);
+document.getElementById('playAgain').addEventListener('click', () => startGame(state.diff));
+document.getElementById('backHome').addEventListener('click', () => show('startScreen'));
+
+document.querySelectorAll('#gYear, #gName').forEach(el => {
+  el.addEventListener('keydown', (e) => { if (e.key === 'Enter') submitGuess(); });
+});
+</script>
+</body>
+</html>

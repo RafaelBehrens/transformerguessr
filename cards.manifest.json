@@ -1,0 +1,284 @@
+{
+  "cards": [
+    {
+      "name": "GPT-2XL 1.5B",
+      "slug": "gpt_2xl_1_5b",
+      "file": "cards/gpt_2xl_1_5b.png",
+      "w": 341,
+      "h": 410
+    },
+    {
+      "name": "Llama 3 8B",
+      "slug": "llama_3_8b",
+      "file": "cards/llama_3_8b.png",
+      "w": 405,
+      "h": 411
+    },
+    {
+      "name": "OLMo 2 7B",
+      "slug": "olmo_2_7b",
+      "file": "cards/olmo_2_7b.png",
+      "w": 456,
+      "h": 409
+    },
+    {
+      "name": "Llama 3.2 1B",
+      "slug": "llama_3_2_1b",
+      "file": "cards/llama_3_2_1b.png",
+      "w": 417,
+      "h": 409
+    },
+    {
+      "name": "Qwen3 4B",
+      "slug": "qwen3_4b",
+      "file": "cards/qwen3_4b.png",
+      "w": 431,
+      "h": 415
+    },
+    {
+      "name": "Qwen3 32B",
+      "slug": "qwen3_32b",
+      "file": "cards/qwen3_32b.png",
+      "w": 434,
+      "h": 431
+    },
+    {
+      "name": "DeepSeek V3/R1 (671 billion)",
+      "slug": "deepseek_v3_r1_671_billion",
+      "file": "cards/deepseek_v3_r1_671_billion.png",
+      "w": 468,
+      "h": 410
+    },
+    {
+      "name": "Kimi K2 (1 trillion)",
+      "slug": "kimi_k2_1_trillion",
+      "file": "cards/kimi_k2_1_trillion.png",
+      "w": 446,
+      "h": 416
+    },
+    {
+      "name": "Gemma 3 4B",
+      "slug": "gemma_3_4b",
+      "file": "cards/gemma_3_4b.png",
+      "w": 432,
+      "h": 425
+    },
+    {
+      "name": "Gemma 3 27B",
+      "slug": "gemma_3_27b",
+      "file": "cards/gemma_3_27b.png",
+      "w": 434,
+      "h": 426
+    },
+    {
+      "name": "Mistral 3.1 Small 24B",
+      "slug": "mistral_3_1_small_24b",
+      "file": "cards/mistral_3_1_small_24b.png",
+      "w": 429,
+      "h": 429
+    },
+    {
+      "name": "Llama 4 Maverick (400B)",
+      "slug": "llama_4_maverick_400b",
+      "file": "cards/llama_4_maverick_400b.png",
+      "w": 449,
+      "h": 428
+    },
+    {
+      "name": "Qwen3 235B-A22B",
+      "slug": "qwen3_235b_a22b",
+      "file": "cards/qwen3_235b_a22b.png",
+      "w": 425,
+      "h": 431
+    },
+    {
+      "name": "SmolLM3 3B",
+      "slug": "smollm3_3b",
+      "file": "cards/smollm3_3b.png",
+      "w": 464,
+      "h": 418
+    },
+    {
+      "name": "Qwen3 Coder Flash",
+      "slug": "qwen3_coder_flash",
+      "file": "cards/qwen3_coder_flash.png",
+      "w": 449,
+      "h": 399
+    },
+    {
+      "name": "Gemma 3 270M",
+      "slug": "gemma_3_270m",
+      "file": "cards/gemma_3_270m.png",
+      "w": 404,
+      "h": 418
+    },
+    {
+      "name": "GPT-OSS 20B",
+      "slug": "gpt_oss_20b",
+      "file": "cards/gpt_oss_20b.png",
+      "w": 476,
+      "h": 421
+    },
+    {
+      "name": "GPT-OSS 120B",
+      "slug": "gpt_oss_120b",
+      "file": "cards/gpt_oss_120b.png",
+      "w": 436,
+      "h": 418
+    },
+    {
+      "name": "Grok 2.5 (270B)",
+      "slug": "grok_2_5_270b",
+      "file": "cards/grok_2_5_270b.png",
+      "w": 457,
+      "h": 400
+    },
+    {
+      "name": "GLM-4.5 (355B)",
+      "slug": "glm_4_5_355b",
+      "file": "cards/glm_4_5_355b.png",
+      "w": 434,
+      "h": 426
+    },
+    {
+      "name": "MiniMax-M2 (230B)",
+      "slug": "minimax_m2_230b",
+      "file": "cards/minimax_m2_230b.png",
+      "w": 411,
+      "h": 421
+    },
+    {
+      "name": "Qwen2 Next 80B-A3B",
+      "slug": "qwen2_next_80b_a3b",
+      "file": "cards/qwen2_next_80b_a3b.png",
+      "w": 357,
+      "h": 415
+    },
+    {
+      "name": "Kimi Linear 48B-A3B",
+      "slug": "kimi_linear_48b_a3b",
+      "file": "cards/kimi_linear_48b_a3b.png",
+      "w": 377,
+      "h": 426
+    },
+    {
+      "name": "Olmo 3 7B",
+      "slug": "olmo_3_7b",
+      "file": "cards/olmo_3_7b.png",
+      "w": 457,
+      "h": 419
+    },
+    {
+      "name": "Olmo 3 32B",
+      "slug": "olmo_3_32b",
+      "file": "cards/olmo_3_32b.png",
+      "w": 421,
+      "h": 420
+    },
+    {
+      "name": "Mistral 3 Large (673 billion)",
+      "slug": "mistral_3_large_673_billion",
+      "file": "cards/mistral_3_large_673_billion.png",
+      "w": 445,
+      "h": 419
+    },
+    {
+      "name": "Nemotron 3 Super (120B-A12B)",
+      "slug": "nemotron_3_super_120b_a12b",
+      "file": "cards/nemotron_3_super_120b_a12b.png",
+      "w": 432,
+      "h": 396
+    },
+    {
+      "name": "Xiaomi MiMo-V2-Flash (309B)",
+      "slug": "xiaomi_mimo_v2_flash_309b",
+      "file": "cards/xiaomi_mimo_v2_flash_309b.png",
+      "w": 457,
+      "h": 406
+    },
+    {
+      "name": "DeepSeek V3.2 (671B)",
+      "slug": "deepseek_v3_2_671b",
+      "file": "cards/deepseek_v3_2_671b.png",
+      "w": 449,
+      "h": 409
+    },
+    {
+      "name": "Arcee AI Trinity Large (400B)",
+      "slug": "arcee_ai_trinity_large_400b",
+      "file": "cards/arcee_ai_trinity_large_400b.png",
+      "w": 462,
+      "h": 417
+    },
+    {
+      "name": "GLM-5 (744B)",
+      "slug": "glm_5_744b",
+      "file": "cards/glm_5_744b.png",
+      "w": 433,
+      "h": 419
+    },
+    {
+      "name": "GLM-4.7 (355B)",
+      "slug": "glm_4_7_355b",
+      "file": "cards/glm_4_7_355b.png",
+      "w": 449,
+      "h": 433
+    },
+    {
+      "name": "Tiny Aya 3.35B",
+      "slug": "tiny_aya_3_35b",
+      "file": "cards/tiny_aya_3_35b.png",
+      "w": 419,
+      "h": 427
+    },
+    {
+      "name": "Step 3.5 Flash (196B)",
+      "slug": "step_3_5_flash_196b",
+      "file": "cards/step_3_5_flash_196b.png",
+      "w": 444,
+      "h": 397
+    },
+    {
+      "name": "MiniMax-M2.5 (230B)",
+      "slug": "minimax_m2_5_230b",
+      "file": "cards/minimax_m2_5_230b.png",
+      "w": 407,
+      "h": 404
+    },
+    {
+      "name": "Nanbeige 4.1 3B",
+      "slug": "nanbeige_4_1_3b",
+      "file": "cards/nanbeige_4_1_3b.png",
+      "w": 432,
+      "h": 408
+    },
+    {
+      "name": "Qwen3.5 (397B)",
+      "slug": "qwen3_5_397b",
+      "file": "cards/qwen3_5_397b.png",
+      "w": 364,
+      "h": 411
+    },
+    {
+      "name": "Ling 2.5 (1T)",
+      "slug": "ling_2_5_1t",
+      "file": "cards/ling_2_5_1t.png",
+      "w": 443,
+      "h": 402
+    },
+    {
+      "name": "Sarvam 30B",
+      "slug": "sarvam_30b",
+      "file": "cards/sarvam_30b.png",
+      "w": 425,
+      "h": 413
+    },
+    {
+      "name": "Sarvam 105B",
+      "slug": "sarvam_105b",
+      "file": "cards/sarvam_105b.png",
+      "w": 424,
+      "h": 415
+    }
+  ]
+}
